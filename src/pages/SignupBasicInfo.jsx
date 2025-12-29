@@ -37,7 +37,7 @@ export default function SignupBasicInfo() {
             <Header title="Sign Up – Basic Information" showBack />
 
             <div className="flex-1 px-6 pt-2 pb-20 flex flex-col justify-center overflow-y-auto">
-                <div className="flex flex-col justify-center h-full">
+                <div className="flex flex-col justify-center min-h-full">
                     <div>
                         <div className="flex gap-3 mb-2">
                             <div className="w-[35%] flex flex-col items-center justify-center p-1">

@@ -7,7 +7,7 @@ import AdminLogin from './pages/AdminLogin';
 import SignupBasicInfo from './pages/SignupBasicInfo';
 import SignupFarmInfo from './pages/SignupFarmInfo';
 import SignupAppInfo from './pages/SignupAppInfo';
-import SignupStep3 from './pages/SignupStep3';
+import SignupSummary from './pages/SignupSummary';
 import FarmerDashboard from './pages/FarmerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import UnifiedReport from './pages/UnifiedReport';
@@ -22,7 +22,7 @@ import ReportConfirmation from './pages/ReportConfirmation';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/login" element={<Login />} />
@@ -30,7 +30,7 @@ function App() {
         <Route path="/signup/basic-info" element={<SignupBasicInfo />} />
         <Route path="/signup/farm-info" element={<SignupFarmInfo />} />
         <Route path="/signup/app-info" element={<SignupAppInfo />} />
-        <Route path="/signup/step3" element={<SignupStep3 />} />
+        <Route path="/signup/summary" element={<SignupSummary />} />
         <Route path="/dashboard" element={<FarmerDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/report" element={<UnifiedReport />} />
