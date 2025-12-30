@@ -5,23 +5,31 @@ import logo from '../assets/logo.png';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [rsbsa, setRsbsa] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        if (rsbsa.trim() === '') {
-            alert("Please enter an ID");
+        setError('');
+        if (!rsbsa.trim() || !password.trim()) {
+            setError("Please fill in all fields");
             return;
         }
-        if (rsbsa.toLowerCase().includes('admin')) {
-            navigate('/admin-dashboard');
-        } else {
-            navigate('/dashboard');
+
+        setIsLoading(true);
+        const result = await login(rsbsa, password);
+        setIsLoading(false);
+
+        if (!result.success) {
+            setError(result.error || "Login failed");
         }
     };
 
@@ -36,10 +44,10 @@ export default function Login() {
             <div className="w-[90%] max-w-[420px] bg-white p-6 rounded-md shadow-lg mb-0">
                 <form onSubmit={handleLogin} className="flex flex-col gap-3">
                     <Input
-                        label="RSBSA Number or Admin ID"
+                        label="Username or RSBSA Number"
                         value={rsbsa}
                         onChange={(e) => setRsbsa(e.target.value)}
-                        placeholder="Enter ID"
+                        placeholder="Enter Username or RSBSA"
                     />
 
                     <div className="mb-2">
@@ -62,7 +70,11 @@ export default function Login() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="mt-0">Login</Button>
+                    {error && <div className="text-red-500 text-sm font-medium mb-3 bg-red-50 p-2 rounded text-center">{error}</div>}
+
+                    <Button type="submit" className="mt-0" disabled={isLoading}>
+                        {isLoading ? 'Logging in...' : 'Login'}
+                    </Button>
                 </form>
             </div>
 

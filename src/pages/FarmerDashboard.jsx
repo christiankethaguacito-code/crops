@@ -1,15 +1,51 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Activity, Home, User, LogOut, X, Map, Bell, Newspaper, LayoutGrid, Sun } from 'lucide-react';
 import Layout from '../components/Layout';
 import BottomNavbar from '../components/BottomNavbar';
 
+import { API_URL, useAuth } from '../context/AuthContext';
+
 export default function FarmerDashboard() {
     const navigate = useNavigate();
+    const { user, token, logout } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [dashboardData, setDashboardData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const response = await fetch(`${API_URL}/farmer/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setDashboardData(data);
+                }
+            } catch (error) {
+                console.error("Failed to load dashboard", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (token) fetchDashboardData();
+    }, [token]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    const { profile, weather, stats, latest_advisory } = dashboardData || {};
 
     return (
         <>
@@ -20,8 +56,8 @@ export default function FarmerDashboard() {
                         <User size={24} className="text-white" />
                     </button>
                     <div className="text-right">
-                        <h1 className="text-xl font-bold m-0">Hello, Farmer</h1>
-                        <p className="text-xs text-white/80 m-0">Norala, South Cotabato</p>
+                        <h1 className="text-xl font-bold m-0">Hello, {profile?.name?.split(' ')[0] || 'Farmer'}</h1>
+                        <p className="text-xs text-white/80 m-0">{profile?.barangay || 'Norala'}, South Cotabato</p>
                     </div>
                 </div>
 
@@ -31,15 +67,15 @@ export default function FarmerDashboard() {
                         <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Current Weather</span>
                         <div className="flex items-center gap-2 mt-1">
                             <Sun size={24} className="text-yellow-500" />
-                            <span className="text-2xl font-bold">32°C</span>
+                            <span className="text-2xl font-bold">{weather?.temp || 32}°C</span>
                         </div>
-                        <span className="text-[10px] text-text-muted">Sunny, Low Chance of Rain</span>
+                        <span className="text-[10px] text-text-muted">{weather?.condition || 'Sunny'}, {weather?.location || 'Norala'}</span>
                     </div>
                     <div className="h-10 w-[1px] bg-gray-200"></div>
                     <div className="flex flex-col items-end">
                         <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Active Reports</span>
-                        <span className="text-2xl font-bold text-primary">0</span>
-                        <span className="text-[10px] text-text-muted">No pending issues</span>
+                        <span className="text-2xl font-bold text-primary">{stats?.active_reports || 0}</span>
+                        <span className="text-[10px] text-text-muted">{stats?.active_reports > 0 ? 'Pending issues' : 'No pending issues'}</span>
                     </div>
                 </div>
             </div>
@@ -78,55 +114,56 @@ export default function FarmerDashboard() {
                 {/* Promo / Info Section */}
                 <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-3">Latest Advisory</h3>
                 <div className="bg-gradient-to-r from-primary to-primary-light text-white p-4 rounded-xl shadow-md mb-4">
-                    <h4 className="font-bold text-sm mb-1">Pest Alert: Rice Black Bug</h4>
-                    <p className="text-xs opacity-90">Farmers in Brgy. San Jose are advised to monitor fields due to reported sightings.</p>
+                    <h4 className="font-bold text-sm mb-1">{latest_advisory?.title || 'System Notice'}</h4>
+                    <p className="text-xs opacity-90">{latest_advisory?.message || 'No critical alerts at this time.'}</p>
                 </div>
             </div>
 
-            {/* Sidebar (Full Screen Overlay) */}
-            <div className={`fixed top-0 left-0 w-full h-full z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                {/* Backdrop */}
-                <div className="absolute top-0 left-0 w-full h-full bg-primary" onClick={toggleSidebar}></div>
-
-                {/* Sidebar Content */}
-                <div className="absolute top-0 left-0 w-full h-full flex flex-col p-6 text-white">
-                    {/* Close Button (Top Left - matching profile button) */}
-                    <div className="flex justify-between items-center mb-6 mt-8"> {/* Added mt-8 to match header pt-8 */}
-                        <button onClick={toggleSidebar} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
-                            <X size={24} className="text-white" />
-                        </button>
-                    </div>
-
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 text-primary shadow-lg border-4 border-white/20">
-                            <User size={40} />
-                        </div>
-                        <h2 className="text-2xl font-bold">Juan Dela Cruz</h2>
-                        <p className="text-white/70 text-sm">RSBSA: 12-34-56-789</p>
-                    </div>
-
-                    <div className="flex-1">
-                        <div className="space-y-4">
-                            <div className="p-4 bg-white/10 rounded-lg flex items-center gap-3">
-                                <User size={20} />
-                                <span className="font-medium">My Profile</span>
+            {/* Sidebar (Full Screen Overlay) - Portal Used to Escape Setup Stacking Context */}
+            {createPortal(
+                <div className="fixed inset-0 z-[100] flex justify-center pointer-events-none">
+                    <div className="w-full max-w-[480px] h-full relative overflow-hidden">
+                        <div className={`absolute inset-0 bg-primary pointer-events-auto flex flex-col p-6 text-white transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                            {/* Close Button (Top Left - matching profile button) */}
+                            <div className="flex justify-between items-center mb-6 mt-8">
+                                <button onClick={toggleSidebar} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                                    <X size={24} className="text-white" />
+                                </button>
                             </div>
-                            <div className="p-4 bg-white/10 rounded-lg flex items-center gap-3">
-                                <Activity size={20} />
-                                <span className="font-medium">History</span>
+
+                            <div className="flex flex-col items-center mb-8">
+                                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 text-primary shadow-lg border-4 border-white/20">
+                                    <User size={40} />
+                                </div>
+                                <h2 className="text-2xl font-bold">{profile?.name || 'Farmer'}</h2>
+                                <p className="text-white/70 text-sm">RSBSA: {profile?.rsbsa}</p>
                             </div>
+
+                            <div className="flex-1">
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-white/10 rounded-lg flex items-center gap-3">
+                                        <User size={20} />
+                                        <span className="font-medium">My Profile</span>
+                                    </div>
+                                    <div className="p-4 bg-white/10 rounded-lg flex items-center gap-3">
+                                        <Activity size={20} />
+                                        <span className="font-medium">History</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={logout}
+                                className="w-full bg-white text-red-600 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg mt-auto"
+                            >
+                                <LogOut size={20} />
+                                LOGOUT
+                            </button>
                         </div>
                     </div>
-
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="w-full bg-white text-red-600 font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg mt-auto"
-                    >
-                        <LogOut size={20} />
-                        LOGOUT
-                    </button>
-                </div>
-            </div>
+                </div>,
+                document.body
+            )}
         </>
     );
 }

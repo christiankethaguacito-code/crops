@@ -1,6 +1,7 @@
 
 import React from 'react';
 import FarmerLayout from './components/FarmerLayout';
+import { AuthProvider } from './context/AuthContext';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
@@ -24,33 +25,35 @@ import ReportConfirmation from './pages/ReportConfirmation';
 function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <Routes>
-        <Route path="/" element={<Splash />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/signup/basic-info" element={<SignupBasicInfo />} />
-        <Route path="/signup/farm-info" element={<SignupFarmInfo />} />
-        <Route path="/signup/app-info" element={<SignupAppInfo />} />
-        <Route path="/signup/summary" element={<SignupSummary />} />
-        <Route path="/signup/summary" element={<SignupSummary />} />
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Splash />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/signup/basic-info" element={<SignupBasicInfo />} />
+          <Route path="/signup/farm-info" element={<SignupFarmInfo />} />
+          <Route path="/signup/app-info" element={<SignupAppInfo />} />
+          <Route path="/signup/summary" element={<SignupSummary />} />
+          <Route path="/signup/summary" element={<SignupSummary />} />
 
-        {/* Farmer Routes with Persistent Navbar */}
-        <Route element={<FarmerLayout />}>
-          <Route path="/dashboard" element={<FarmerDashboard />} />
-          <Route path="/report" element={<UnifiedReport />} />
-          <Route path="/status" element={<ReportStatus />} />
-        </Route>
+          {/* Farmer Routes with Persistent Navbar */}
+          <Route element={<FarmerLayout />}>
+            <Route path="/dashboard" element={<FarmerDashboard />} />
+            <Route path="/report" element={<UnifiedReport />} />
+            <Route path="/status" element={<ReportStatus />} />
+          </Route>
 
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/report/pest" element={<PestReport />} />
-        <Route path="/report/flood" element={<FloodReport />} />
-        <Route path="/confirmation" element={<Confirmation />} />
-        <Route path="/report-confirmation" element={<ReportConfirmation />} />
-        <Route path="/admin/farm-reports" element={<AdminFarmReports />} />
-        <Route path="/admin/daily-summary" element={<AdminDailySummary />} />
-        <Route path="/admin/organized-report" element={<AdminOrganizedReport />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/report/pest" element={<PestReport />} />
+          <Route path="/report/flood" element={<FloodReport />} />
+          <Route path="/confirmation" element={<Confirmation />} />
+          <Route path="/report-confirmation" element={<ReportConfirmation />} />
+          <Route path="/admin/farm-reports" element={<AdminFarmReports />} />
+          <Route path="/admin/daily-summary" element={<AdminDailySummary />} />
+          <Route path="/admin/organized-report" element={<AdminOrganizedReport />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

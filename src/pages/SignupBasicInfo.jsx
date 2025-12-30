@@ -10,12 +10,13 @@ export default function SignupBasicInfo() {
     const location = useLocation();
     const prevData = location.state || {};
 
+    const [error, setError] = useState('');
+
     const [formData, setFormData] = useState({
-        ...prevData,
         lastName: '',
         firstName: '',
         middleName: '',
-        farmerId: '',
+        rsbsaIdBasic: '',
         tribe: '',
         streetSitio: '',
         barangay: '',
@@ -25,16 +26,43 @@ export default function SignupBasicInfo() {
         dobMonth: '',
         dobDay: '',
         dobYear: '',
-        civilStatus: ''
+        civilStatus: '',
+        ...prevData
     });
 
     const handleNext = () => {
+        setError('');
+        const requiredFields = [
+            { key: 'lastName', label: 'Last Name' },
+            { key: 'firstName', label: 'First Name' },
+            { key: 'rsbsaIdBasic', label: 'RSBSA Number' },
+            { key: 'barangay', label: 'Barangay' },
+            { key: 'province', label: 'Province' }
+        ];
+
+        const missing = requiredFields.filter(field => !formData[field.key]?.trim());
+
+        if (missing.length > 0) {
+            setError(`Please fill in required fields: ${missing.map(f => f.label).join(', ')}`);
+            return;
+        }
+
+        // Basic format checks
+        if (formData.rsbsaIdBasic.length < 5) {
+            setError("RSBSA Number must be at least 5 characters.");
+            return;
+        }
+
         navigate('/signup/farm-info', { state: formData });
     };
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-white">
-            <Header title="Sign Up – Basic Information" showBack />
+            <Header
+                title="Sign Up – Basic Information"
+                showBack
+                onBack={() => navigate('/login')}
+            />
 
             <div className="flex-1 px-6 pt-2 pb-20 flex flex-col justify-center overflow-y-auto">
                 <div className="flex flex-col justify-center min-h-full">
@@ -55,7 +83,7 @@ export default function SignupBasicInfo() {
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                            <Input className="grid-layout" label="Farmer ID #" value={formData.farmerId} onChange={(e) => setFormData({ ...formData, farmerId: e.target.value })} />
+                            <Input className="grid-layout" label="RSBSA Number" value={formData.rsbsaIdBasic} onChange={(e) => setFormData({ ...formData, rsbsaIdBasic: e.target.value })} />
                             <Input className="grid-layout" label="Tribe" value={formData.tribe} onChange={(e) => setFormData({ ...formData, tribe: e.target.value })} />
                             <Input className="grid-layout" label="Street/Sitio" value={formData.streetSitio} onChange={(e) => setFormData({ ...formData, streetSitio: e.target.value })} />
                             <Input className="grid-layout" label="Barangay" value={formData.barangay} onChange={(e) => setFormData({ ...formData, barangay: e.target.value })} />
@@ -110,7 +138,8 @@ export default function SignupBasicInfo() {
                 </div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-20 w-full">
+            <div className="fixed bottom-0 left-0 right-0 z-20 w-full bg-white">
+                {error && <div className="text-red-500 text-[10px] font-bold text-center py-2 bg-red-50 border-t border-red-100">{error}</div>}
                 <Button variant="secondary" onClick={handleNext} className="w-full py-4 text-black font-bold uppercase text-lg bg-primary-bg border-t border-primary-light/50 rounded-none shadow-none hover:bg-primary-bg/90 m-0">
                     NEXT
                 </Button>
