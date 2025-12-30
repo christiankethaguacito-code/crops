@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, AlertTriangle, CheckCircle, CloudRain, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth, API_URL } from '../../context/AuthContext';
+import { MOCK_DATA } from '../../config/mockData';
 
 export default function AdminDashboard() {
-    const { token } = useAuth();
+    const { token, isMockMode } = useAuth();
     const [stats, setStats] = useState({
         totalFarmers: 0,
         pendingReports: 0,
@@ -16,6 +17,15 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+
+            if (isMockMode) {
+                // Mock Data
+                setStats(MOCK_DATA.admin.Stats);
+                setRecentReports(MOCK_DATA.admin.Reports.slice(0, 5));
+                setLoading(false);
+                return;
+            }
+
             try {
                 // Fetch Stats
                 const statsRes = await fetch(`${API_URL}/admin/stats`, {
@@ -43,8 +53,8 @@ export default function AdminDashboard() {
             }
         };
 
-        if (token) fetchData();
-    }, [token]);
+        if (token || isMockMode) fetchData();
+    }, [token, isMockMode]);
 
     const statCards = [
         { label: 'Total Farmers', value: stats.totalFarmers, icon: Users, color: 'bg-blue-500' },

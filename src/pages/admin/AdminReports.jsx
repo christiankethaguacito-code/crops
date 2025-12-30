@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, AlertTriangle, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth, API_URL } from '../../context/AuthContext';
+import { MOCK_DATA } from '../../config/mockData';
 
 export default function AdminReports() {
-    const { token } = useAuth();
+    const { token, isMockMode } = useAuth();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('All');
@@ -12,6 +13,15 @@ export default function AdminReports() {
 
     const fetchReports = async () => {
         setLoading(true);
+        if (isMockMode) {
+            // Mock Data
+            setTimeout(() => {
+                setReports(MOCK_DATA.admin.Reports);
+                setLoading(false);
+            }, 500);
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/admin/reports`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -28,10 +38,16 @@ export default function AdminReports() {
     };
 
     useEffect(() => {
-        if (token) fetchReports();
-    }, [token]);
+        if (token || isMockMode) fetchReports();
+    }, [token, isMockMode]);
 
     const handleStatusUpdate = async (id, newStatus) => {
+        if (isMockMode) {
+            // Mock Update - just update local state for visual feedback
+            setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/admin/reports/${id}/status`, {
                 method: 'PATCH',
@@ -54,16 +70,17 @@ export default function AdminReports() {
     const filteredReports = reports.filter(r => {
         const matchesTab = activeTab === 'All' || r.status === activeTab.toLowerCase();
         const searchLower = searchTerm.toLowerCase();
+        // Safe access checks
         const matchesSearch =
-            r.type.toLowerCase().includes(searchLower) ||
-            r.first_name.toLowerCase().includes(searchLower) ||
-            r.last_name.toLowerCase().includes(searchLower) ||
-            r.location.toLowerCase().includes(searchLower);
+            (r.type && r.type.toLowerCase().includes(searchLower)) ||
+            (r.first_name && r.first_name.toLowerCase().includes(searchLower)) ||
+            (r.last_name && r.last_name.toLowerCase().includes(searchLower)) ||
+            (r.location && r.location.toLowerCase().includes(searchLower));
         return matchesTab && matchesSearch;
     });
 
     const getStatusColor = (status) => {
-        switch (status) {
+        switch (status?.toLowerCase()) {
             case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
             case 'verified': return 'bg-blue-50 text-blue-700 border-blue-200';
             case 'resolved': return 'bg-green-50 text-green-700 border-green-200';
@@ -73,17 +90,13 @@ export default function AdminReports() {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString();
     };
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Incident Reports</h2>
-                    <p className="text-sm text-gray-500">Monitor and respond to farmer incident reports.</p>
-                </div>
-            </div>
+            {/* Redundant header removed */}
 
             {/* Tabs & Search */}
             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
@@ -93,8 +106,8 @@ export default function AdminReports() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === tab
-                                    ? 'bg-white text-primary shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-white text-primary shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             {tab}
@@ -125,7 +138,17 @@ export default function AdminReports() {
                 )}
 
                 {filteredReports.map((report) => {
-                    const details = typeof report.details === 'string' ? JSON.parse(report.details) : report.details;
+                    let details = {};
+                    if (report.details) {
+                        try {
+                            details = typeof report.details === 'string' ? JSON.parse(report.details) : report.details;
+                        } catch (e) {
+                            // Fallback for plain string details
+                            details = { description: report.details };
+                        }
+                    }
+                    // Ensure details is an object to prevent crashes
+                    if (!details || typeof details !== 'object') details = {};
 
                     return (
                         <div key={report.id} className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all">

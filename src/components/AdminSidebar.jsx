@@ -61,6 +61,7 @@ export default function AdminSidebar({ isOpen, toggle }) {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
+                                onClick={toggle}
                             >
                                 {({ isActive }) => (
                                     <div className={`

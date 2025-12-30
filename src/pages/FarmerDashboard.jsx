@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Activity, Home, User, LogOut, X, Map, Bell, Newspaper, LayoutGrid, Sun } from 'lucide-react';
 import Layout from '../components/Layout';
 import BottomNavbar from '../components/BottomNavbar';
-
 import { API_URL, useAuth } from '../context/AuthContext';
+import { MOCK_DATA } from '../config/mockData';
 
 export default function FarmerDashboard() {
     const navigate = useNavigate();
-    const { user, token, logout } = useAuth();
+    const { user, token, logout, isMockMode, loading: authLoading } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -18,7 +18,18 @@ export default function FarmerDashboard() {
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
     useEffect(() => {
+        // Wait for auth initialization
+        if (authLoading) return;
+
         const fetchDashboardData = async () => {
+            if (isMockMode) {
+                // Mock Data - Dynamic based on logged in user
+                const username = user?.username || 'james'; // Default to james if generic
+                setDashboardData(MOCK_DATA.getFarmerDashboard(username));
+                setLoading(false);
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/farmer/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -34,10 +45,10 @@ export default function FarmerDashboard() {
             }
         };
 
-        if (token) fetchDashboardData();
-    }, [token]);
+        if (token || isMockMode) fetchDashboardData();
+    }, [token, isMockMode, authLoading]);
 
-    if (loading) {
+    if (loading || authLoading) {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

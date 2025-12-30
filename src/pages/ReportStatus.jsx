@@ -2,15 +2,37 @@ import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import { useAuth, API_URL } from '../context/AuthContext';
 import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { MOCK_DATA } from '../config/mockData';
 
 export default function ReportStatus() {
-    const { token } = useAuth();
+    const { token, isMockMode, loading: authLoading, user } = useAuth();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // Wait for Auth Context to finish initialization (checking connection)
+        if (authLoading) return;
+
         const fetchReports = async () => {
+            if (isMockMode) {
+                // Combine active and history for the status view
+                const username = user?.username || 'james';
+                const data = MOCK_DATA.getFarmerDashboard(username);
+                // Ensure array existence
+                const active = data?.activeReports || [];
+                const history = data?.history || [];
+
+                // Avoid duplicates if history contains active (depends on mock logic implementation)
+                // My mock implementation: "history: myReports" (contains ALL).
+                // So I should just use history?
+                // Yes, getFarmerDashboard returns `history: myReports` which is ALL reports.
+                // So just use `history`.
+                setReports(history);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/reports/history`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -28,8 +50,8 @@ export default function ReportStatus() {
             }
         };
 
-        if (token) fetchReports();
-    }, [token]);
+        if (token || isMockMode) fetchReports();
+    }, [token, isMockMode, authLoading]);
 
     const getStatusInfo = (status) => {
         switch (status) {
@@ -49,6 +71,10 @@ export default function ReportStatus() {
             month: 'short', day: 'numeric', year: 'numeric'
         });
     };
+
+    if (authLoading) {
+        return <div className="flex items-center justify-center h-full text-gray-400">Initializing...</div>;
+    }
 
     return (
         <div className="flex flex-col h-full bg-white">
@@ -72,7 +98,19 @@ export default function ReportStatus() {
                 <div className="space-y-3">
                     {reports.map((report) => {
                         const style = getStatusInfo(report.status);
-                        const details = typeof report.details === 'string' ? JSON.parse(report.details) : report.details;
+
+                        let details = {};
+                        if (report.details) {
+                            try {
+                                details = typeof report.details === 'string' ? JSON.parse(report.details) : report.details;
+                            } catch (e) {
+                                // Fallback for plain string details
+                                details = { description: report.details };
+                            }
+                        }
+                        // Ensure details is an object to prevent crashes
+                        if (!details || typeof details !== 'object') details = {};
+
 
                         return (
                             <div key={report.id} className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">

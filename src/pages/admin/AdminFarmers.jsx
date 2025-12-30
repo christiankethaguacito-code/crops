@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, MapPin, Phone } from 'lucide-react';
 import { useAuth, API_URL } from '../../context/AuthContext';
 import { useOutletContext } from 'react-router-dom';
+import { MOCK_DATA } from '../../config/mockData';
 
 export default function AdminFarmers() {
-    const { token } = useAuth();
+    const { token, isMockMode } = useAuth();
     const { setHeaderAction } = useOutletContext();
     const [farmers, setFarmers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +26,16 @@ export default function AdminFarmers() {
         const fetchFarmers = async () => {
             setLoading(true);
             setError(null);
+
+            if (isMockMode) {
+                // Use Mock Data
+                setTimeout(() => {
+                    setFarmers(MOCK_DATA.admin.Farmers);
+                    setLoading(false);
+                }, 500);
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/admin/farmers`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -44,7 +55,7 @@ export default function AdminFarmers() {
         };
 
         if (token) fetchFarmers();
-    }, [token]);
+    }, [token, isMockMode]);
 
     const filteredFarmers = farmers.filter(f => {
         const term = searchTerm.toLowerCase();
