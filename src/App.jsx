@@ -25,6 +25,8 @@ import Confirmation from './pages/Confirmation';
 import ReportConfirmation from './pages/ReportConfirmation';
 import FarmerProfile from './pages/FarmerProfile';
 import NotificationsPage from './pages/NotificationsPage';
+import FarmerMapPage from './pages/FarmerMapPage';
+import NewsPage from './pages/NewsPage';
 import AdminFarmReports from './pages/AdminFarmReports';
 import AdminDailySummary from './pages/AdminDailySummary';
 import AdminOrganizedReport from './pages/AdminOrganizedReport';
@@ -52,6 +54,8 @@ function App() {
             <Route path="/status" element={<ReportStatus />} />
             <Route path="/profile" element={<FarmerProfile />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/my-map" element={<FarmerMapPage />} />
+            <Route path="/news" element={<NewsPage />} />
           </Route>
 
           {/* Admin Routes with Sidebar Layout */}

@@ -4,6 +4,7 @@ import { useAuth, API_URL } from '../../context/AuthContext';
 import { useOutletContext } from 'react-router-dom';
 import { MOCK_DATA } from '../../config/mockData';
 import FarmerDetailModal from '../../components/FarmerDetailModal';
+import AddFarmerModal from '../../components/AddFarmerModal';
 
 export default function AdminFarmers() {
     const { token, isMockMode } = useAuth();
@@ -13,16 +14,24 @@ export default function AdminFarmers() {
     const [searchTerm, setSearchTerm] = useState('');
     const [error, setError] = useState(null);
     const [selectedFarmer, setSelectedFarmer] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     // Inject "Add New Farmer" button into header
     useEffect(() => {
         setHeaderAction(
-            <button className="bg-primary text-white px-4 py-2 rounded-md font-bold text-sm shadow-sm hover:bg-primary/90 transition-colors whitespace-nowrap">
+            <button 
+                onClick={() => setShowAddModal(true)}
+                className="bg-primary text-white px-4 py-2 rounded-md font-bold text-sm shadow-sm hover:bg-primary/90 transition-colors whitespace-nowrap"
+            >
                 + Add New Farmer
             </button>
         );
         return () => setHeaderAction(null);
     }, [setHeaderAction]);
+
+    const handleAddSuccess = (newFarmer) => {
+        setFarmers(prev => [newFarmer, ...prev]);
+    };
 
     useEffect(() => {
         const fetchFarmers = async () => {
@@ -203,6 +212,14 @@ export default function AdminFarmers() {
                     farmer={selectedFarmer} 
                     onClose={() => setSelectedFarmer(null)}
                     onStatusUpdate={handleStatusUpdate}
+                />
+            )}
+
+            {/* Add Farmer Modal */}
+            {showAddModal && (
+                <AddFarmerModal 
+                    onClose={() => setShowAddModal(false)}
+                    onSuccess={handleAddSuccess}
                 />
             )}
         </div>

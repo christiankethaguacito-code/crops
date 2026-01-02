@@ -145,7 +145,7 @@ export default function FarmerDashboard() {
                 {/* Quick Actions Grid (Updated) */}
                 <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-3">Quick Services</h3>
                 <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="flex flex-col items-center gap-2" onClick={() => { }}>
+                    <div className="flex flex-col items-center gap-2" onClick={() => navigate('/my-map')}>
                         <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shadow-sm cursor-pointer hover:bg-orange-200 transition-colors">
                             <Map size={24} />
                         </div>
@@ -157,7 +157,7 @@ export default function FarmerDashboard() {
                         </div>
                         <span className="text-[10px] font-medium text-center leading-tight">Notifications</span>
                     </div>
-                    <div className="flex flex-col items-center gap-2" onClick={() => { }}>
+                    <div className="flex flex-col items-center gap-2" onClick={() => navigate('/news')}>
                         <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm cursor-pointer hover:bg-blue-200 transition-colors">
                             <Newspaper size={24} />
                         </div>
