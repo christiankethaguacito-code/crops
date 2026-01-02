@@ -80,9 +80,9 @@ export default function AdminMapPage() {
 
     return (
         <>
-            <div className="h-[calc(100vh-120px)] flex gap-4">
+            <div className="h-[calc(100vh-120px)] flex gap-4 relative z-0">
                 {/* Main Map Area */}
-                <div className={`flex-1 bg-white rounded-xl shadow-sm overflow-hidden transition-all ${selectedReport ? 'w-2/3' : 'w-full'}`}>
+                <div className={`flex-1 bg-white rounded-xl shadow-sm overflow-hidden transition-all relative z-0 ${selectedReport ? 'w-2/3' : 'w-full'}`}>
                     <AdminMap onReportClick={handleReportClick} />
                 </div>
 
@@ -198,8 +198,8 @@ export default function AdminMapPage() {
 
             {/* Photo Modal */}
             {showPhotoModal && (
-                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden relative z-[10000]">
                         <div className="p-4 border-b flex items-center justify-between">
                             <h3 className="font-bold text-lg">Photo Evidence</h3>
                             <button 
