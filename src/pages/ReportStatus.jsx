@@ -97,26 +97,14 @@ export default function ReportStatus() {
 
                 <div className="space-y-3">
                     {reports.map((report) => {
-                        const style = getStatusInfo(report.status);
-
-                        let details = {};
-                        if (report.details) {
-                            try {
-                                details = typeof report.details === 'string' ? JSON.parse(report.details) : report.details;
-                            } catch (e) {
-                                // Fallback for plain string details
-                                details = { description: report.details };
-                            }
-                        }
-                        // Ensure details is an object to prevent crashes
-                        if (!details || typeof details !== 'object') details = {};
-
+                        const style = getStatusInfo(report.status?.toLowerCase());
+                        const reportType = report.report_type || report.type || 'Unknown';
 
                         return (
                             <div key={report.id} className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <h3 className="font-bold text-gray-900 capitalize text-base">{report.type} Report</h3>
+                                        <h3 className="font-bold text-gray-900 capitalize text-base">{reportType} Report</h3>
                                         <p className="text-xs text-gray-400">{formatDate(report.created_at)}</p>
                                     </div>
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 border ${style.color}`}>
@@ -127,12 +115,13 @@ export default function ReportStatus() {
 
                                 <div className="text-sm text-gray-600 mb-2">
                                     <p><span className="font-bold text-gray-400 text-xs uppercase">Location:</span> {report.location}</p>
-                                    {details.crop && <p><span className="font-bold text-gray-400 text-xs uppercase">Crop:</span> {details.crop}</p>}
+                                    {report.crop_planted && <p><span className="font-bold text-gray-400 text-xs uppercase">Crop:</span> {report.crop_planted}</p>}
+                                    {report.affected_area && <p><span className="font-bold text-gray-400 text-xs uppercase">Affected Area:</span> {report.affected_area} ha</p>}
                                 </div>
 
-                                {details.description && (
+                                {report.description && (
                                     <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded italic">
-                                        "{details.description}"
+                                        "{report.description}"
                                     </p>
                                 )}
                             </div>

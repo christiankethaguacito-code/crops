@@ -34,10 +34,18 @@ export default function AdminDashboard() {
                 const statsData = await statsRes.json();
 
                 // Fetch Recent Activity (Reports)
-                const reportsRes = await fetch(`${API_URL}/admin/reports`, {
+                const reportsRes = await fetch(`${API_URL}/admin/reports?limit=5`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const reportsData = await reportsRes.json();
+                
+                // Backend returns { reports: [...] }
+                const reportsArray = reportsData.reports || reportsData;
+                const normalizedReports = reportsArray.map(r => ({
+                    ...r,
+                    type: r.report_type || r.type,
+                    first_name: r.farmer_name?.split(' ')[0] || 'Unknown'
+                }));
 
                 setStats({
                     totalFarmers: statsData.totalFarmers,
@@ -45,7 +53,7 @@ export default function AdminDashboard() {
                     resolvedReports: statsData.resolvedReports,
                     weatherAlerts: 1 // Keep mock
                 });
-                setRecentReports(reportsData.slice(0, 5)); // Top 5
+                setRecentReports(normalizedReports.slice(0, 5)); // Top 5
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
             } finally {

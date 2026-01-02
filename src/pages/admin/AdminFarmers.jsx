@@ -45,7 +45,19 @@ export default function AdminFarmers() {
                     throw new Error(errorData.message || 'Failed to fetch farmers');
                 }
                 const data = await response.json();
-                setFarmers(data);
+                // Backend returns { farmers: [...] }
+                const farmersArray = data.farmers || data;
+                // Normalize field names
+                const normalizedFarmers = farmersArray.map(f => ({
+                    ...f,
+                    first_name: f.full_name?.split(' ')[0] || f.full_name || 'Unknown',
+                    last_name: f.full_name?.split(' ').slice(1).join(' ') || '',
+                    name: f.full_name,
+                    rsbsa: f.rsbsa_number,
+                    rsbsa_id: f.rsbsa_number,
+                    address_barangay: f.barangay
+                }));
+                setFarmers(normalizedFarmers);
             } catch (err) {
                 console.error(err);
                 setError(err.message || 'Failed to load farmers');
@@ -54,7 +66,7 @@ export default function AdminFarmers() {
             }
         };
 
-        if (token) fetchFarmers();
+        if (token || isMockMode) fetchFarmers();
     }, [token, isMockMode]);
 
     const filteredFarmers = farmers.filter(f => {

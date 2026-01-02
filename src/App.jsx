@@ -25,6 +25,8 @@ import ReportConfirmation from './pages/ReportConfirmation';
 import AdminFarmReports from './pages/AdminFarmReports';
 import AdminDailySummary from './pages/AdminDailySummary';
 import AdminOrganizedReport from './pages/AdminOrganizedReport';
+import AdminMapPage from './pages/admin/AdminMapPage';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function App() {
   return (
@@ -53,8 +55,8 @@ function App() {
             <Route path="/admin/farmers" element={<AdminFarmers />} />
             <Route path="/admin/reports" element={<AdminReports />} />
             {/* Placeholders for now */}
-            <Route path="/admin/map" element={<div className="p-8 font-bold">Map View (Coming Soon)</div>} />
-            <Route path="/admin/settings" element={<div className="p-8 font-bold">Settings (Coming Soon)</div>} />
+            <Route path="/admin/map" element={<AdminMapPage />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
 
           <Route path="/report/pest" element={<PestReport />} />

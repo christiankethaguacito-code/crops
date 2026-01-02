@@ -28,7 +28,17 @@ export default function AdminReports() {
             });
             if (!response.ok) throw new Error('Failed to fetch reports');
             const data = await response.json();
-            setReports(data);
+            // Backend returns { reports: [...] } or array directly
+            const reportsArray = data.reports || data;
+            // Normalize field names
+            const normalizedReports = reportsArray.map(r => ({
+                ...r,
+                type: r.report_type || r.type,
+                first_name: r.farmer_name?.split(' ')[0] || 'Unknown',
+                last_name: r.farmer_name?.split(' ').slice(1).join(' ') || 'Farmer',
+                details: r.description ? { description: r.description } : {}
+            }));
+            setReports(normalizedReports);
         } catch (err) {
             console.error(err);
             setError('Failed to load reports');

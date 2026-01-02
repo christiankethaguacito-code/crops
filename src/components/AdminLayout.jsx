@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
-import { Menu, Search, Bell } from 'lucide-react';
+import NotificationBell from './NotificationBell';
+import { Menu, Search } from 'lucide-react';
 
 export default function AdminLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,11 +52,8 @@ export default function AdminLayout() {
                             {/* Page Content Actions (Injected via Context) */}
                             {headerAction}
 
-                            {/* Notification Bell */}
-                            <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
-                                <Bell size={24} />
-                                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                            </button>
+                            {/* Notification Bell with Real-time Polling */}
+                            <NotificationBell />
                         </div>
                     </div>
 
