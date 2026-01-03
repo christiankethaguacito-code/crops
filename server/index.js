@@ -24,9 +24,16 @@ const WEATHER_API_KEY = process.env.WEATHER_API_KEY || '';
 
 // Increase payload limit for Base64 images
 app.use(cors());
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for serving frontend
+    crossOriginEmbedderPolicy: false
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Serve static files from frontend dist folder
+const distPath = join(__dirname, '../dist');
+app.use(express.static(distPath));
 
 // ============ VALIDATION SCHEMAS ============
 
@@ -1170,6 +1177,16 @@ app.get('/api/crop-types', async (req, res) => {
         { id: '4', name: 'Coconut', season: 'Year-round' },
         { id: '5', name: 'Banana', season: 'Year-round' }
     ]);
+});
+
+// ============ SPA FALLBACK - Serve frontend for non-API routes ============
+app.get('*', (req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(join(__dirname, '../dist/index.html'));
+    } else {
+        res.status(404).json({ error: 'API endpoint not found' });
+    }
 });
 
 // ============ START SERVER ============
