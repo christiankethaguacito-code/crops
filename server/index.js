@@ -53,10 +53,8 @@ const RegisterSchema = z.object({
     farmBarangay: z.string().optional(),
     farmMunicipality: z.string().optional(),
     farmProvince: z.string().optional(),
-    boundaryNorth: z.string().optional(),
-    boundarySouth: z.string().optional(),
-    boundaryEast: z.string().optional(),
-    boundaryWest: z.string().optional(),
+    farmLatitude: z.number().nullable().optional(),
+    farmLongitude: z.number().nullable().optional(),
     farmSize: z.string().optional()
 });
 
@@ -150,13 +148,12 @@ app.post('/api/auth/register', async (req, res) => {
         await connection.execute(
             `INSERT INTO farms (
                 id, farmer_id, location_sitio, location_barangay, location_municipality, location_province,
-                boundary_north, boundary_south, boundary_east, boundary_west, farm_size_hectares
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                latitude, longitude, farm_size_hectares
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 farmId, farmerId, data.farmSitio || null, data.farmBarangay || null, 
                 data.farmMunicipality || 'Norala', data.farmProvince || 'South Cotabato',
-                data.boundaryNorth || null, data.boundarySouth || null, 
-                data.boundaryEast || null, data.boundaryWest || null,
+                data.farmLatitude || null, data.farmLongitude || null,
                 data.farmSize ? parseFloat(data.farmSize) : null
             ]
         );
@@ -316,6 +313,117 @@ app.get('/api/farmer/me', authenticateToken, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Failed to fetch dashboard data' });
+    }
+});
+
+// Get farmer profile
+app.get('/api/farmer/profile', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const [rows] = await pool.execute(
+            `SELECT 
+                f.first_name, f.last_name, f.rsbsa_id, f.cellphone, f.profile_picture,
+                f.address_barangay, f.address_municipality, f.address_province,
+                u.email,
+                fm.location_barangay as farm_barangay, fm.farm_size_hectares,
+                fm.latitude as farm_latitude, fm.longitude as farm_longitude
+            FROM farmers f
+            LEFT JOIN users u ON f.user_id = u.id
+            LEFT JOIN farms fm ON f.id = fm.farmer_id
+            WHERE f.user_id = ?`,
+            [userId]
+        );
+
+        if (!rows[0]) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+
+        res.json(rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+});
+
+// Update farmer profile
+app.patch('/api/farmer/profile', authenticateToken, async (req, res) => {
+    let connection;
+    try {
+        const userId = req.user.id;
+        const { cellphone, address_barangay, farm_latitude, farm_longitude, profile_picture } = req.body;
+
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        // Get farmer id
+        const [farmerRows] = await connection.execute(
+            'SELECT id FROM farmers WHERE user_id = ?',
+            [userId]
+        );
+
+        if (!farmerRows[0]) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Farmer not found' });
+        }
+
+        const farmerId = farmerRows[0].id;
+
+        // Update farmer table
+        const farmerUpdates = [];
+        const farmerParams = [];
+
+        if (cellphone !== undefined) {
+            farmerUpdates.push('cellphone = ?');
+            farmerParams.push(cellphone);
+        }
+        if (address_barangay !== undefined) {
+            farmerUpdates.push('address_barangay = ?');
+            farmerParams.push(address_barangay);
+        }
+        if (profile_picture !== undefined) {
+            farmerUpdates.push('profile_picture = ?');
+            farmerParams.push(profile_picture);
+        }
+
+        if (farmerUpdates.length > 0) {
+            farmerParams.push(farmerId);
+            await connection.execute(
+                `UPDATE farmers SET ${farmerUpdates.join(', ')} WHERE id = ?`,
+                farmerParams
+            );
+        }
+
+        // Update farm table (location)
+        if (farm_latitude !== undefined || farm_longitude !== undefined) {
+            const farmUpdates = [];
+            const farmParams = [];
+
+            if (farm_latitude !== undefined) {
+                farmUpdates.push('latitude = ?');
+                farmParams.push(farm_latitude);
+            }
+            if (farm_longitude !== undefined) {
+                farmUpdates.push('longitude = ?');
+                farmParams.push(farm_longitude);
+            }
+
+            if (farmUpdates.length > 0) {
+                farmParams.push(farmerId);
+                await connection.execute(
+                    `UPDATE farms SET ${farmUpdates.join(', ')} WHERE farmer_id = ?`,
+                    farmParams
+                );
+            }
+        }
+
+        await connection.commit();
+        res.json({ message: 'Profile updated successfully' });
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error(err);
+        res.status(500).json({ error: 'Failed to update profile' });
+    } finally {
+        if (connection) connection.release();
     }
 });
 

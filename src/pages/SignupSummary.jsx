@@ -45,10 +45,8 @@ export default function SignupSummary() {
             farmBarangay: formData.farmBarangay,
             farmMunicipality: formData.farmMunicipality,
             farmProvince: formData.farmProvince,
-            boundaryNorth: formData.boundaryNorth,
-            boundarySouth: formData.boundarySouth,
-            boundaryEast: formData.boundaryEast,
-            boundaryWest: formData.boundaryWest
+            farmLatitude: formData.farmLatitude || null,
+            farmLongitude: formData.farmLongitude || null
         };
 
         try {
@@ -148,8 +146,8 @@ export default function SignupSummary() {
                     <Section
                         title="Farm Information"
                         data={[
-                            { label: 'Farm Location', value: `${formData.farmSitio || ''}, ${formData.farmBarangay || ''}, ${formData.farmMunicipality || ''}, ${formData.farmProvince || ''}`.trim() },
-                            { label: 'Boundaries', value: `N: ${formData.boundaryNorth}, S: ${formData.boundarySouth}, E: ${formData.boundaryEast}, W: ${formData.boundaryWest}` },
+                            { label: 'Farm Location', value: `${formData.farmSitio || ''}, ${formData.farmBarangay || ''}, ${formData.farmMunicipality || ''}, ${formData.farmProvince || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || 'Not set' },
+                            { label: 'GPS Coordinates', value: formData.farmLatitude && formData.farmLongitude ? `${formData.farmLatitude.toFixed(6)}, ${formData.farmLongitude.toFixed(6)}` : 'Not pinned' },
                         ]}
                     />
 
